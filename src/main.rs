@@ -176,6 +176,13 @@ async fn run() -> Result<(), Box<dyn std::error::Error>> {
     println!("\n=========== validateaddress ==========");
     println!("{:?}", result);
 
+    // TODO: further steps, in order to implement a full-protocol handshake, would include
+    //  public key exchange of the client with the server, then sending encrypted messages
+    //  and receiving encrypted data by the server, decrypting it successfully, thus indicating
+    //  a successful full-protocol handshake.
+    //  Due to a limitation of the available endpoints of the used target node, this has not
+    //  been implemented.
+
     Ok(())
 }
 
