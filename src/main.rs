@@ -29,7 +29,7 @@ const RPC_USERNAME: &str = dotenv!("RPC_USERNAME");
 const RPC_PASSWORD: &str = dotenv!("RPC_PASSWORD");
 const RPC_DOMAIN_AND_PORT: &str = dotenv!("RPC_DOMAIN_AND_PORT");
 
-async fn make_rpc_call(method: &str, params: Vec<&str>) -> Result<Response, reqwest::Error> {
+async fn make_rpc_call(method: &str, params: Vec<&str>) -> Result<Response, ApiError> {
     let client = Client::new();
     let rpc_request = json!({
         "jsonrpc": "2.0",
@@ -46,11 +46,12 @@ async fn make_rpc_call(method: &str, params: Vec<&str>) -> Result<Response, reqw
     let auth_header = HeaderValue::from_str(&format!("Basic {}", encoded_auth_header_value)).unwrap();
 
     let response = client.post(RPC_DOMAIN_AND_PORT)
-        .json(&rpc_request)
         .header(AUTHORIZATION, auth_header)
         .header(CONTENT_TYPE, "application/json")
+        .json(&rpc_request)
         .send()
-        .await?;
+        .await
+        .map_err(ApiError::RequestError)?;
 
     Ok(response)
 }
