@@ -1,0 +1,12 @@
+[package]
+name = "p2p-node-handshake"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+futures = "0.3.27"
+futures-util = "0.3.27"
+serde_json = "1.0.95"
+tokio = { version = "1.26.0", features = ["full"] }
+tokio-tungstenite = { version = "0.18.0", features = ["rustls-tls-native-roots"] }
+

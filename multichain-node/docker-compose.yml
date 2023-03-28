@@ -1,0 +1,21 @@
+version: '3'
+
+services:
+  multichain-node:
+    build: .
+    ports:
+      - "4000:4000"
+      - "4001:4001"
+    expose:
+      - 4000
+      - 4001
+    tty: true
+    environment:
+      #      - PARENT_NODE_HOST=172.20.0.2
+      - BLOCKCHAIN_NAME=gvko
+      - PARENT_NODE_PORT=4000
+      - NODE_PORT=4000
+      - NODE_PORT_RPC=4001
+      - RPC_USERNAME=multichainrpc
+      - RPC_PASSWORD=secret
+    container_name: multichain-node
