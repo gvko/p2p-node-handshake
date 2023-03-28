@@ -1,35 +1,45 @@
-use tokio::net::TcpStream;
-use tokio_tungstenite::{connect_async, tungstenite::Message, MaybeTlsStream, WebSocketStream};
-use futures_util::{SinkExt, stream::{SplitSink, SplitStream}, StreamExt};
+use reqwest::{Client, Error, Response, header::HeaderValue};
+use serde_json::json;
+use data_encoding::BASE64;
+
+async fn make_rpc_call(method: &str, params: Vec<&str>, username: &str, password: &str) -> Result<Response, Error> {
+    let client = Client::new();
+    let rpc_request = json!({
+        "jsonrpc": "2.0",
+        "method": method,
+        "params": params,
+        "id": 1
+    });
+
+    let auth_header_value = format!("{}:{}", username, password);
+    let encoded_auth_header_value = BASE64.encode(auth_header_value.as_bytes());
+    let auth_header = HeaderValue::from_str(&format!("Basic {}", encoded_auth_header_value)).unwrap();
+
+    let response = client.post("http://localhost:4001")
+        .json(&rpc_request)
+        .header("Authorization", auth_header)
+        .send()
+        .await?;
+
+    Ok(response)
+}
 
 async fn run() -> Result<(), Box<dyn std::error::Error>> {
-    // Connect to the Goerli node over Alchemy WebSocket API
-    let (mut ws_stream, _)
-        = connect_async("wss://eth-goerli.g.alchemy.com/v2/<KEY>")
+    // Set the username and password
+    let username = "multichainrpc";
+    let password = "secret";
+
+    let response = make_rpc_call("getinfo", vec![], username, password)
         .await
-        .expect("Failed to connect to websocket stream");
+        .expect("Could not make RPC call");
 
-    let (write, read) = ws_stream.split();
-    let mut write_stream = write;
+    // Parse the JSON response
+    let result: serde_json::Value = response.json()
+        .await
+        .expect("Could not parse JSON response");
 
-    // Step 1: Send a version message to initiate the handshake
-    let res = write_stream.send(Message::text("VERSION 1.0")).await;
-    if res.is_err() {
-        eprintln!("Failed to send version message");
-    }
-    println!("{:#?}", res);
-
-    // Receive a response from the server with server version, protocol version, and public keys
-
-    // Verify the server's public key and send a message to agree on the protocol version
-
-    // Receive a message from the server containing its public key for encryption
-
-    // Send a message containing the client's public key
-
-    // Send a message containing the user agent and authentication credentials
-
-    // Receive a message indicating that the handshake is complete
+    // Print the result
+    println!("{}", result);
 
     Ok(())
 }
